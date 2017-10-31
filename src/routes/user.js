@@ -16,13 +16,13 @@ router.use(bodyParser.json());
 
 
 //GET all users 
-router.get('/users', midAuth.userAuth, (req, res) => {
+router.get('/', midAuth.userAuth, (req, res) => {
 	console.log(req.user);
 	res.send(req.user).json();
 });
 
 //POST a new user -- this is posting a 200 and not a 201
-router.post('/users', (req, res, next) => {
+router.post('/', (req, res, next) => {
 	let user = {
 		fullName: req.body.fullName,
 		emailAddress: req.body.emailAddress,
@@ -38,4 +38,4 @@ router.post('/users', (req, res, next) => {
 	});
 });
 
-module.exports = {router};
+module.exports = router;

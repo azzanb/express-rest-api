@@ -1,11 +1,12 @@
 'use strict';
 
-var env = process.env.NODE_ENV || 'development';
-console.log(env);
 
 /* Set up environment variables to differentiate a test db from a development db. 
 	This is to ensure the development db does not get deleted when testing. 
 */
+var env = process.env.NODE_ENV || 'development';
+console.log(env);
+
 if(env === 'development'){
 	process.env.PORT === 5000;
 	process.env.MONGODB_URI = "mongodb://localhost:27017/CourseRating";
@@ -16,20 +17,21 @@ if(env === 'development'){
 
 
 // load modules
-var express = require('express');
-var morgan = require('morgan');
-var {mongoose} = require('./db/mongoose');
-var seeder = require('mongoose-seeder');
-var data = require('./data/data.json');
-var session = require('express-session');
-var app = express();
-var {router} = require('./routes/routes');
-var port = process.env.PORT;
+const express = require('express'),
+ morgan = require('morgan'),
+ {mongoose} = require('./db/mongoose'),
+ seeder = require('mongoose-seeder'),
+ data = require('./data/data.json'),
+ session = require('express-session'),
+ app = express(),
+ courseRoutes = require('./routes/course'),
+ userRoutes = require('./routes/user'),
+ port = process.env.PORT;
 
 //
-var {User} = require('./models/user');
-var {Review} = require('./models/review');
-var {Course} = require('./models/course');
+const {User} = require('./models/user'),
+ {Review} = require('./models/review'),
+ {Course} = require('./models/course');
 
 app.use(session({
 	secret: "Secrets for course leaners",
@@ -37,7 +39,7 @@ app.use(session({
 	saveUninitialized: false
 }));
 
-var db = mongoose.connection;
+const db = mongoose.connection;
 db.on('error', (err) => {
 	console.log(err);
 });
@@ -63,8 +65,8 @@ app.set('views', __dirname + '/views');
 app.use('/', express.static('public'));
 
 //begin HTTP methods
-app.use('/api/users', router);
-app.use('/api/courses', router);
+app.use('/api/users', userRoutes);
+app.use('/api/courses', courseRoutes);
 
 
 // catch 404 and forward to global error handler

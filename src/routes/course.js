@@ -7,11 +7,8 @@ const {Course} = require('./../models/course'),
  {Review} = require('./../models/review'), 
  midAuth = require('../middleware/userAuth'); 
 
-router.use(bodyParser.json());
-
-
 //GET courses and return only title and _id
-router.get('/api/courses', (req, res) => {
+router.get('/', (req, res) => {
 	Course.find({}, 'title _id', (err, courses) => {
 		if(err) return next(err);
 		res.send(courses);
@@ -19,15 +16,22 @@ router.get('/api/courses', (req, res) => {
 });
 
 //GET individual course and include deep population
-router.get('/api/courses/:courseId', (req, res) => {
-	Course.findById(req.params.courseId).populate('user reviews').exec((err, course) => {
+router.get('/:courseId', (req, res) => {
+	Course.findById(req.params.courseId).populate({
+		path: 'user',
+		select: 'fullName'
+	}).populate({
+		path: 'reviews',
+		select: 'review'
+	}).lean().exec((err, course) => {
 		if(err) return res.send(err);
-		res.send(course);
+		console.log(course);
+		res.send(res).json();
 	});
 });
 
 //POST a new course
-router.post('/api/courses', midAuth.userAuth, (req, res, next) => {
+router.post('/', midAuth.userAuth, (req, res, next) => {
 	let course = {
 		user: req.user._id,
 		title: req.body.title,
@@ -50,7 +54,7 @@ router.post('/api/courses', midAuth.userAuth, (req, res, next) => {
 });
 
 //PUT (update) an already existing course
-router.put('/api/courses/:courseId', midAuth.userAuth, (req, res, next) => {
+router.put('/:courseId', midAuth.userAuth, (req, res, next) => {
 	let options = {
 		new: true
 	};
@@ -67,7 +71,7 @@ router.put('/api/courses/:courseId', midAuth.userAuth, (req, res, next) => {
 });
 
 //POST a review to an existing course
-router.post('/api/courses/:courseId/reviews', midAuth.userAuth, (req, res, next) => {
+router.post('/:courseId/reviews', midAuth.userAuth, (req, res, next) => {
 	Course.findById(req.params.courseId).populate('user').exec((err, course) =>{
 		if(err) return next(err);
 
@@ -100,5 +104,5 @@ router.post('/api/courses/:courseId/reviews', midAuth.userAuth, (req, res, next)
 	})
 });
 
-module.exports = {router};
+module.exports = router;
 
