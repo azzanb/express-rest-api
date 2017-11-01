@@ -28,17 +28,12 @@ const express = require('express'),
  userRoutes = require('./routes/user'),
  port = process.env.PORT;
 
-//
+//load mongoose models
 const {User} = require('./models/user'),
  {Review} = require('./models/review'),
  {Course} = require('./models/course');
 
-app.use(session({
-	secret: "Secrets for course leaners",
-	resave: true,
-	saveUninitialized: false
-}));
-
+//Set up a database connection
 const db = mongoose.connection;
 db.on('error', (err) => {
 	console.log(err);
@@ -84,9 +79,13 @@ app.use(function(err, req, res, next) {
 });
 
 // start listening on our port
-app.listen(port, function() {
+app.listen(app.get('port'), function() {
   console.log('Connected to port 5000!');
 });
+
+// app.listen(port, function() {
+//   console.log('Connected to port 5000!');
+// });
 
 
 module.exports = {app};

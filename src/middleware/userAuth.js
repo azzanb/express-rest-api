@@ -21,7 +21,6 @@ function userAuth(req, res, next){
 				req.user = user;
 				next();
 			}
-			
 		});
 	}
 	

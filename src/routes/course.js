@@ -7,8 +7,10 @@ const {Course} = require('./../models/course'),
  {Review} = require('./../models/review'), 
  midAuth = require('../middleware/userAuth'); 
 
+ router.use(bodyParser.json());
+
 //GET courses and return only title and _id
-router.get('/', (req, res) => {
+router.get('/', (req, res, next) => {
 	Course.find({}, 'title _id', (err, courses) => {
 		if(err) return next(err);
 		res.send(courses);
@@ -16,39 +18,33 @@ router.get('/', (req, res) => {
 });
 
 //GET individual course and include deep population
-router.get('/:courseId', (req, res) => {
-	Course.findById(req.params.courseId).populate({
-		path: 'user',
-		select: 'fullName'
-	}).populate({
-		path: 'reviews',
-		select: 'review'
-	}).lean().exec((err, course) => {
-		if(err) return res.send(err);
-		console.log(course);
-		res.send(res).json();
+router.get('/:courseId', (req, res, next) => {
+	Course.findOne({_id: req.params.courseId}).populate('user reviews').exec((err, course) => {
+		if(err){
+			res.send(err);
+			return next(err);
+		} 
+		res.send(course);
 	});
 });
 
 //POST a new course
 router.post('/', midAuth.userAuth, (req, res, next) => {
-	let course = {
-		user: req.user._id,
+	var course = new Course({
+		user: req.body.user._id,
 		title: req.body.title,
 		description: req.body.description,
 		estimatedTime: req.body.estimatedTime,
 		materialsNeeded: req.body.materialsNeeded,
 		steps: req.body.steps
-	};
+	});
 
-	Course.create(course, (err, course) => {
+	course.save((err, course) => {
 		if(err){
-			console.log(req.user)
-			res.send(400).json();
+			res.status(400);
 			next(err);
-		}else {
-			res.location('/');
-			res.status(201).send();
+		} else {
+			res.location('/').status(201).json();
 		}
 	});
 });
@@ -61,11 +57,13 @@ router.put('/:courseId', midAuth.userAuth, (req, res, next) => {
 
 	Course.findByIdAndUpdate(req.params.courseId, req.body, options, (err, course) => {
 		if(err){
-			res.send(400).json();
+			res.send(err);
 			next(err);
 		} else {
-			console.log(course);
-			return res.status(204).json();
+			course.save().then((err) => {
+				console.log(course);
+				return res.status(204).json()
+			});
 		}
 	});
 });
@@ -77,13 +75,11 @@ router.post('/:courseId/reviews', midAuth.userAuth, (req, res, next) => {
 
 
 		let review = {
-			user: course.user._id,
+			user: req.body.user._id,
 			rating: req.body.rating
 		}
 		let doc = new Review(review);
-		console.log(course.user._id);
 		
-
 		// if(course.user._id.toString() === course.reviews._id.toString()){
 		// 	let error = new Error("You've already reviewed this course!");
 		// 	next(error);

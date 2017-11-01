@@ -17,7 +17,6 @@ router.use(bodyParser.json());
 
 //GET all users 
 router.get('/', midAuth.userAuth, (req, res) => {
-	console.log(req.user);
 	res.send(req.user).json();
 });
 
@@ -30,7 +29,7 @@ router.post('/', (req, res, next) => {
 	};
 	User.create(user, (err, user) => {
 		if(err){
-			res.send(400).json();
+			res.send(err);
 			next(err);
 		}else {
 			res.location('/').status(201).json();
