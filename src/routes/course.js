@@ -60,10 +60,7 @@ router.put('/:courseId', midAuth.userAuth, (req, res, next) => {
 			res.send(err);
 			next(err);
 		} else {
-			course.save().then((err) => {
-				console.log(course);
-				return res.status(204).json()
-			});
+			return res.status(204).json()
 		}
 	});
 });
@@ -73,31 +70,20 @@ router.post('/:courseId/reviews', midAuth.userAuth, (req, res, next) => {
 	Course.findById(req.params.courseId).populate('user').exec((err, course) =>{
 		if(err) return next(err);
 
+		let doc = new Review(req.body);
+	
+		course.reviews.push(doc);
 
-		let review = {
-			user: req.body.user._id,
-			rating: req.body.rating
-		}
-		let doc = new Review(review);
-		
-		// if(course.user._id.toString() === course.reviews._id.toString()){
-		// 	let error = new Error("You've already reviewed this course!");
-		// 	next(error);
-		// } else {
-			course.reviews.push(doc);
-			console.log(course.reviews[0]._id);
+		doc.save(function(err){
+          if (err) return next(err);
+        });
 
-			doc.save(function(err){
-	          if (err) return next(err);
-	        });
+		course.save(function(err){
+          if (err) return next(err);
+        });
 
-			course.save(function(err){
-	          if (err) return next(err);
-	        });
-
-			res.location('/' + req.params.courseId).status(201).json();
-		//}
-	})
+		res.location('/' + req.params.courseId).status(201).json();
+	});
 });
 
 module.exports = router;
