@@ -20,29 +20,19 @@ router.get('/', (req, res, next) => {
 //GET individual course and include deep population
 router.get('/:courseId', (req, res, next) => {
 	Course.findOne({_id: req.params.courseId}).populate('user reviews').exec((err, course) => {
-		if(err){
-			res.send(err);
-			return next(err);
-		} 
+		if(err) return next(err); 
 		res.send(course);
 	});
 });
 
 //POST a new course
 router.post('/', midAuth.userAuth, (req, res, next) => {
-	var course = new Course({
-		user: req.body.user._id,
-		title: req.body.title,
-		description: req.body.description,
-		estimatedTime: req.body.estimatedTime,
-		materialsNeeded: req.body.materialsNeeded,
-		steps: req.body.steps
-	});
+	var course = new Course(req.body);
 
 	course.save((err, course) => {
 		if(err){
 			res.status(400);
-			next(err);
+			return next(err);
 		} else {
 			res.location('/').status(201).json();
 		}
@@ -56,12 +46,8 @@ router.put('/:courseId', midAuth.userAuth, (req, res, next) => {
 	};
 
 	Course.findByIdAndUpdate(req.params.courseId, req.body, options, (err, course) => {
-		if(err){
-			res.send(err);
-			next(err);
-		} else {
-			return res.status(204).json()
-		}
+		if(err) return next(err);
+		res.status(204).json();
 	});
 });
 
